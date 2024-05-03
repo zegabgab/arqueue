@@ -14,22 +14,19 @@ bool init_queue(arqueue *queue, size_t initial_capacity) {
 }
 
 bool enqueue(arqueue *queue, int entry) {
-    if (queue_full(queue) && double_queue_capacity(queue)) {
-        return true;
-    }
-    queue->data[(queue->head + queue->length) % queue->capacity] = entry;
-    queue->length++;
-    return false;
+    bool error = queue_full(queue) && double_queue_capacity(queue);
+    size_t tail = error ? 0 : ((queue->head + queue->length) % queue->capacity);
+    queue->data[tail] = error ? queue->data[tail] : entry;
+    queue->length = error ? queue->length : (queue->length + 1);
+    return error;
 }
 
 bool dequeue(arqueue *queue, int *dest) {
-    if (queue_empty(queue)) {
-        return true;
-    }
-    *dest = queue->data[queue->head];
-    queue->head = (queue->head + 1) % queue->capacity;
-    queue->length--;
-    return false;
+    bool empty = queue_empty(queue);
+    *dest = empty ? *dest : queue->data[queue->head];
+    queue->head = empty ? queue->head : ((queue->head + 1) % queue->capacity);
+    queue->length = empty ? queue->length : (queue->length - 1);
+    return empty;
 }
 
 bool queue_full(const arqueue *queue) {
